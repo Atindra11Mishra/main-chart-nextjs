@@ -646,12 +646,12 @@ export default function Home() {
                                 Badges:
                               </h4>
                               <div className="flex flex-wrap gap-2">
-                                {user.badges?.map((badge) => (
+                                {user.badges?.map((badge,index) => (
                                   <span
-                                    key={badge.id}
+                                    key={index}
                                     className="inline-flex items-center rounded-md border border-purple-400/30 bg-purple-800/30 px-2 py-1 text-xs font-medium text-white"
                                   >
-                                    {badge.icon} {badge.name}
+                                    {badge?.icon} {badge?.name}
                                   </span>
                                 ))}
 
