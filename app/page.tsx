@@ -348,7 +348,7 @@ export default function Home() {
     setIsLoading(true);
   
     try {
-      const response = await fetch("http://localhost:5000/api/chart/user", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chart/user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
