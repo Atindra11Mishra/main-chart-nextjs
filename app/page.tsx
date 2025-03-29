@@ -3,9 +3,36 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 
+// Add global scrollbar hide styles
+const globalStyles = `
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Apply to html and body to hide main page scrollbar */
+  html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  html::-webkit-scrollbar, 
+  body::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide all scrollbars by default */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
 // Badge component for user achievements
 const Badge = ({ id, name, icon }: { id: string, name: string, icon: string }) => (
-  <span className="inline-flex items-center rounded-md border border-cyan-400/30 bg-black/40 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+  <span className="inline-flex items-center rounded-md border border-cyber-green/40 bg-[#011013]/80 px-2 py-1 text-xs font-medium text-cyber-green backdrop-blur-sm shadow-[0_0_5px_rgba(9,251,211,0.2)]">
     {icon} {name}
   </span>
 );
@@ -161,15 +188,26 @@ export default function Home() {
     // Clear canvas
     ctx.clearRect(0, 0, rect.width, rect.height);
 
-    // Set background - darker theme
+    // Set background - cyber theme with darker bg
     const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-    gradient.addColorStop(0, "rgba(10, 10, 18, 0.95)");
-    gradient.addColorStop(1, "rgba(20, 10, 30, 0.95)");
+    gradient.addColorStop(0, "rgba(1, 16, 19, 1)"); // Match the card background
+    gradient.addColorStop(1, "rgba(1, 16, 19, 1)"); // Solid color matching the card
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, rect.width, rect.height);
 
+    // Add subtle radial gradient overlay for cyber effect
+    const radialGradient = ctx.createRadialGradient(
+      rect.width / 2, rect.height / 2, 10,
+      rect.width / 2, rect.height / 2, rect.width * 0.8
+    );
+    radialGradient.addColorStop(0, "rgba(9, 251, 211, 0.03)"); // Very subtle cyber green center glow
+    radialGradient.addColorStop(0.5, "rgba(9, 251, 211, 0.01)");
+    radialGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = radialGradient;
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
     // Draw grid
-    ctx.strokeStyle = "rgba(100, 65, 165, 0.15)";
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.1)";
     ctx.lineWidth = 1;
 
     // Vertical grid lines
@@ -190,8 +228,18 @@ export default function Home() {
       ctx.stroke();
     }
 
+    // Draw outer glow border for the graph
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, rect.width, rect.height);
+    
+    // Draw a second inner border for depth
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.1)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(3, 3, rect.width - 6, rect.height - 6);
+
     // Draw axes
-    ctx.strokeStyle = "rgba(180, 120, 255, 0.5)";
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.5)";
     ctx.lineWidth = 2;
 
     // X-axis
@@ -207,8 +255,8 @@ export default function Home() {
     ctx.stroke();
 
     // Draw axis labels
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.font = "12px Arial";
+    ctx.fillStyle = "rgba(9, 251, 211, 0.8)"; // Cyber green for labels
+    ctx.font = "12px 'Space Grotesk', sans-serif";
     ctx.textAlign = "center";
 
     // X-axis label
@@ -234,8 +282,8 @@ export default function Home() {
       ...tempUsers.map((user) => user.badges?.length || 0)
     );
     
-
     // Draw scale markers
+    ctx.fillStyle = "rgba(9, 251, 211, 0.6)"; // Cyber green for scale markers
     ctx.textAlign = "right";
     ctx.fillText("0", 25, rect.height - 25);
     ctx.fillText(maxScore.toString(), rect.width - 5, rect.height - 25);
@@ -273,8 +321,8 @@ export default function Home() {
       });
 
       // Draw username
-      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-      ctx.font = "10px Arial";
+      ctx.fillStyle = isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)";
+      ctx.font = "10px 'Space Grotesk', sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(`@${user.username}`, x, y + imageSize / 2 + 15);
 
@@ -289,7 +337,7 @@ export default function Home() {
       );
       glowGradient.addColorStop(
         0,
-        isTemp ? "rgba(255, 100, 100, 0.8)" : "rgba(138, 43, 226, 0.8)"
+        isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)"
       );
       glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
@@ -307,8 +355,8 @@ export default function Home() {
       ctx.beginPath();
       ctx.rect(x - imageSize / 2, y - imageSize / 2, imageSize, imageSize);
       ctx.strokeStyle = isTemp
-        ? "rgba(255, 100, 100, 0.9)"
-        : "rgba(138, 43, 226, 0.9)";
+        ? "rgba(254, 83, 187, 0.9)"
+        : "rgba(9, 251, 211, 0.9)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -339,15 +387,32 @@ export default function Home() {
       const { user, x, y } = hoverInfo;
       const isTemp = !("walletScore" in user);
 
-      // Draw info box
-      ctx.fillStyle = isTemp
-        ? "rgba(255, 100, 100, 0.9)"
-        : "rgba(138, 43, 226, 0.9)";
-      ctx.fillRect(x - 80, y - 100, 160, 80);
+      // Draw info box background with glow
+      const boxWidth = 160;
+      const boxHeight = 80;
+      
+      // Add glow effect
+      ctx.shadowColor = isTemp ? "rgba(254, 83, 187, 0.6)" : "rgba(9, 251, 211, 0.6)";
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      // Draw glass panel
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(x - boxWidth/2, y - 100, boxWidth, boxHeight);
+      
+      // Reset shadow
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      
+      // Draw border
+      ctx.strokeStyle = isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x - boxWidth/2, y - 100, boxWidth, boxHeight);
 
       // Draw info text
-      ctx.fillStyle = "white";
-      ctx.font = "12px Arial";
+      ctx.fillStyle = isTemp ? "rgba(254, 83, 187, 1)" : "rgba(9, 251, 211, 1)";
+      ctx.font = "12px 'Space Grotesk', sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(`Score: ${user.totalScore}`, x, y - 75);
       ctx.fillText(`Badges: ${user.badges?.length}`, x, y - 55);
@@ -355,6 +420,7 @@ export default function Home() {
       if (!isTemp) {
         ctx.fillText(`Twitter: ${(user as User).twitterScore}`, x, y - 35);
       } else {
+        ctx.fillStyle = "rgba(254, 83, 187, 0.8)";
         ctx.fillText("Connect wallet for full score", x, y - 35);
       }
     }
@@ -457,78 +523,34 @@ export default function Home() {
     }, 3000);
   };
 
-  return (
-    <main className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-[#050508] bg-crystal-gradient">
-      <div className="w-full max-w-4xl">
-        <div className="flex flex-col items-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2 mb-6">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-purple-400"
-            >
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-              <path d="M5 3v4" />
-              <path d="M19 17v4" />
-              <path d="M3 5h4" />
-              <path d="M17 19h4" />
-            </svg>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
-              User Score & Badge Analysis
-            </span>
-          </h1>
+  const clearTempUsers = () => {
+    setTempUsers([]);
+    setNotification("All temporary users have been cleared.");
 
-          <form onSubmit={handleSubmit} className="w-full flex gap-2 max-w-md">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Enter Twitter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 rounded-md bg-[#1a1a2e]/80 border border-purple-500/30 text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="p-2 rounded-md bg-[#1a1a2e]/80 border border-purple-500/30 text-gray-200 hover:bg-purple-900/30 hover:border-purple-500/50 transition-all"
-            >
+    // Clear notification after 3 seconds
+    setTimeout(() => {
+      setNotification("");
+    }, 3000);
+  };
+
+  return (
+    <>
+      <style jsx global>{globalStyles}</style>
+      <main className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-[#011013] bg-[radial-gradient(ellipse_at_center,rgba(9,251,211,0.05),transparent_70%)] overflow-x-hidden scrollbar-hide">
+        <div className="w-full max-w-4xl">
+          <div className="flex flex-col items-center mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2 mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-              >
-                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowUserPanel(!showUserPanel)}
-              className="p-2 rounded-md bg-purple-600/80 border border-purple-500/50 text-white hover:bg-purple-700 transition-all"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                className="text-cyber-green drop-shadow-[0_0_8px_rgba(9,251,211,0.8)]"
               >
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                 <path d="M5 3v4" />
@@ -536,342 +558,423 @@ export default function Home() {
                 <path d="M3 5h4" />
                 <path d="M17 19h4" />
               </svg>
-            </button>
-          </form>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyber-green to-cyber-blue drop-shadow-[0_0_8px_rgba(9,251,211,0.5)]">
+                User Score & Badge Analysis
+              </span>
+            </h1>
 
-          {/* Notification */}
-          {notification && (
-            <div className="mt-4 w-full max-w-md p-3 rounded-lg bg-purple-900/30 border border-purple-500/30 text-white text-center animate-fadeIn">
-              {notification}
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4">
-          {showUserPanel && (
-            <div className="w-full md:w-96">
-              <div
-                className="bg-gradient-to-br from-[#1a1a2e]/90 to-[#16162a]/80 rounded-lg overflow-hidden h-full border border-purple-500/30 shadow-xl"
-                style={{ backdropFilter: "blur(10px)" }}
+            <form onSubmit={handleSubmit} className="w-full flex gap-2 max-w-md">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Enter Twitter username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-4 py-2 rounded-md bg-[#011013] border border-cyber-green/30 text-white placeholder:text-gray-500 focus:border-cyber-green focus:ring-1 focus:ring-cyber-green transition-all"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="p-2 rounded-md bg-[#011013] border border-cyber-green/30 text-cyber-green hover:bg-cyber-green/10 hover:border-cyber-green/50 transition-all"
+                style={{
+                  boxShadow: isLoading ? "none" : "0 0 8px rgba(9, 251, 211, 0.2)"
+                }}
               >
-                <div className="bg-purple-900/80 p-3 border-b border-purple-500/30">
-                  <h2 className="text-lg font-bold text-white flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowUserPanel(!showUserPanel)}
+                className="p-2 rounded-md bg-cyber-green text-black hover:bg-cyber-green/90 transition-all"
+                style={{
+                  boxShadow: "0 0 10px rgba(9, 251, 211, 0.3)"
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                  <path d="M5 3v4" />
+                  <path d="M19 17v4" />
+                  <path d="M3 5h4" />
+                  <path d="M17 19h4" />
+                </svg>
+              </button>
+            </form>
+
+            {/* Notification */}
+            {notification && (
+              <div className="mt-4 w-full max-w-md p-3 rounded-lg bg-[#011013] border border-cyber-green/30 text-white text-center animate-fadeIn">
+                {notification}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4">
+            {showUserPanel && (
+              <div className="w-full md:w-96">
+                <div
+                  className="bg-[#011013] rounded-lg overflow-hidden h-full border-2 border-cyber-green/50 shadow-[0_0_20px_rgba(9,251,211,0.3)] backdrop-blur-lg relative scrollbar-hide"
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(9,251,211,0.05),transparent_70%)] z-0"></div>
+                
+                  <div className="bg-cyber-green/5 p-3 border-b border-cyber-green/20 relative z-10">
+                    <h2 className="text-lg font-bold text-white flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-cyber-green mr-2"
+                      >
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                        <path d="M5 3v4" />
+                        <path d="M19 17v4" />
+                        <path d="M3 5h4" />
+                        <path d="M17 19h4" />
+                      </svg>
+                      User Analysis
+                    </h2>
+                  </div>
+
+                  <div className="p-4 relative z-10 overflow-y-auto scrollbar-hide">
+                    {users.length === 0 && tempUsers.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-64 text-center text-gray-200">
+                        <div className="border-2 border-dashed border-cyber-green/30 p-6 rounded-lg mb-4">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-cyber-green mx-auto mb-2"
+                          >
+                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                            <path d="M5 3v4" />
+                            <path d="M19 17v4" />
+                            <path d="M3 5h4" />
+                            <path d="M17 19h4" />
+                          </svg>
+                        </div>
+                        <p>
+                          No users analyzed yet. Enter a Twitter username to see
+                          their score and badges.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
+                        {[...users, ...tempUsers].map((user) => {
+                          const isTemp = !("walletScore" in user);
+
+                          return (
+                            <div
+                              key={user.id}
+                              className={`${
+                                isTemp ? "bg-[#011013] border-cyber-pink/30" : "bg-[#011013] border-cyber-green/30"
+                              } rounded-lg p-3 border hover:border-opacity-50 transition-all`}
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-none overflow-hidden border-2 border-cyber-green/50">
+                                  <img
+                                    src={
+                                      user.profileImageUrl || "/placeholder.svg"
+                                    }
+                                    alt={user.username}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-white">
+                                    @{user.username}
+                                  </h3>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-cyber-green">
+                                      Score: {user.totalScore}
+                                    </span>
+                                    <span className="text-xs text-cyber-green">
+                                      •
+                                    </span>
+                                    <span className="text-xs text-cyber-green">
+                                      Badges: {user.badges?.length}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {isTemp && (
+                                  <div className="ml-auto px-2 py-1 bg-[#011013] border border-cyber-pink/30 rounded text-xs font-medium text-cyber-pink flex items-center">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="12"
+                                      height="12"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="mr-1"
+                                    >
+                                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                                      <path d="M12 9v4" />
+                                      <path d="M12 17h.01" />
+                                    </svg>
+                                    Temp
+                                  </div>
+                                )}
+
+                                {!isTemp && (user as User).isVerified && (
+                                  <div className="ml-auto px-2 py-1 bg-[#011013] border border-cyber-blue/30 rounded text-xs font-medium text-cyber-blue">
+                                    Verified
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="mt-3">
+                                <h4 className="text-xs font-semibold text-cyber-green mb-1">
+                                  Badges:
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {user.badges?.map((badge,index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center rounded-md border border-cyber-green/40 bg-[#011013] px-2 py-1 text-xs font-medium text-cyber-green shadow-[0_0_5px_rgba(9,251,211,0.2)]"
+                                    >
+                                      {badge?.icon} {badge?.name}
+                                    </span>
+                                  ))}
+
+                                  {user.badges?.length === 0 && (
+                                    <span className="text-xs text-cyan-300">
+                                      No badges earned yet
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {!isTemp && (
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                  <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
+                                    <div className="text-xs text-cyber-green">
+                                      Twitter
+                                    </div>
+                                    <div className="font-bold text-white">
+                                      {(user as User).twitterScore}
+                                    </div>
+                                  </div>
+                                  <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
+                                    <div className="text-xs text-cyber-green">
+                                      Wallet
+                                    </div>
+                                    <div className="font-bold text-white">
+                                      {(user as User).walletScore}
+                                    </div>
+                                  </div>
+                                  <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
+                                    <div className="text-xs text-cyber-green">
+                                      Telegram
+                                    </div>
+                                    <div className="font-bold text-white">
+                                      {(user as User).telegramScore}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {isTemp && (
+                                <div className="mt-3 p-2 bg-[#011013] rounded border border-cyber-pink/30 shadow-[0_0_5px_rgba(254,83,187,0.1)]">
+                                  <p className="text-xs text-cyber-pink">
+                                    <span className="font-semibold">
+                                      Limited data:
+                                    </span>{" "}
+                                    To get a complete profile and accurate total
+                                    score, please connect your wallet and Telegram
+                                    account.
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between items-center mt-3 py-3 border-t border-cyber-green/20 px-4">
+                    <button
+                      onClick={() => setShowUserPanel(false)}
+                      className="px-4 py-2 bg-[#011013] border border-cyber-green/30 rounded text-sm font-medium text-cyber-green hover:bg-cyber-green/5 transition-all shadow-lg"
+                    >
+                      Close Panel
+                    </button>
+                    <button
+                      onClick={clearTempUsers}
+                      className="px-4 py-2 bg-[#011013] border border-cyber-pink/30 rounded text-sm font-medium text-cyber-pink hover:bg-cyber-pink/5 transition-all shadow-lg"
+                    >
+                      Clear Temp
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div
+              className={`flex-1 ${
+                showUserPanel ? "md:max-w-[calc(100%-24rem)]" : "w-full"
+              } scrollbar-hide`}
+            >
+              <div className="p-6 bg-[#011013] rounded-lg border-2 border-cyber-green/50 shadow-[0_0_20px_rgba(9,251,211,0.3)] backdrop-blur-lg relative overflow-hidden scrollbar-hide">
+                {/* Add the subtle radial gradient overlay */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(9,251,211,0.08),transparent_70%)] z-0"></div>
+                
+                <div className="w-full relative z-10">
+                  <div className="flex justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 rounded-none bg-cyber-green mr-2"></div>
+                      <span className="text-white text-sm">Loyals</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 rounded-none bg-cyber-pink mr-2"></div>
+                      <span className="text-white text-sm">Guests</span>
+                    </div>
+                  </div>
+                  <canvas
+                    ref={canvasRef}
+                    className="w-full aspect-[4/3] rounded-lg border border-cyber-green/30 bg-[#011013]"
+                    style={{
+                      boxShadow: "0 0 15px rgba(9, 251, 211, 0.1)",
+                    }}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={() => setHoverInfo(null)}
+                  />
+                  <div className="mt-2 text-xs text-cyber-green text-center">
+                    <span className="italic">
+                      Hover over a user to see details
+                    </span>
+                  </div>
+                </div>
+
+                {users.length === 0 && tempUsers.length === 0 && (
+                  <div className="mt-4 p-4 bg-[#011013] rounded-lg border border-cyber-green/30 text-center shadow-[0_0_10px_rgba(9,251,211,0.1)]">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
+                      width="24"
+                      height="24"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="text-purple-300 mr-2"
+                      className="mx-auto mb-2 text-cyber-green drop-shadow-[0_0_5px_rgba(9,251,211,0.5)]"
                     >
-                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                      <path d="M5 3v4" />
-                      <path d="M19 17v4" />
-                      <path d="M3 5h4" />
-                      <path d="M17 19h4" />
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 16v-4" />
+                      <path d="M12 8h.01" />
                     </svg>
-                    User Analysis
-                  </h2>
-                </div>
-
-                <div className="p-4">
-                  {users.length === 0 && tempUsers.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 text-center text-gray-200">
-                      <div className="border-2 border-dashed border-purple-400/30 p-6 rounded-lg mb-4">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="text-purple-300 mx-auto mb-2"
-                        >
-                          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                          <path d="M5 3v4" />
-                          <path d="M19 17v4" />
-                          <path d="M3 5h4" />
-                          <path d="M17 19h4" />
-                        </svg>
-                      </div>
-                      <p>
-                        No users analyzed yet. Enter a Twitter username to see
-                        their score and badges.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                      {[...users, ...tempUsers].map((user) => {
-                        const isTemp = !("walletScore" in user);
-
-                        return (
-                          <div
-                            key={user.id}
-                            className={`${
-                              isTemp ? "bg-red-900/20" : "bg-purple-900/20"
-                            } rounded-lg p-3 border ${
-                              isTemp
-                                ? "border-red-500/30"
-                                : "border-purple-500/30"
-                            } hover:border-opacity-50 transition-all`}
-                          >
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="w-10 h-10 rounded-none overflow-hidden border-2 shadow-glow border-purple-400/70">
-                                <img
-                                  src={
-                                    user.profileImageUrl || "/placeholder.svg"
-                                  }
-                                  alt={user.username}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div>
-                                <h3 className="font-bold text-white">
-                                  @{user.username}
-                                </h3>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs text-purple-200">
-                                    Score: {user.totalScore}
-                                  </span>
-                                  <span className="text-xs text-purple-200">
-                                    •
-                                  </span>
-                                  <span className="text-xs text-purple-200">
-                                    Badges: {user.badges?.length}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {isTemp && (
-                                <div className="ml-auto px-2 py-1 bg-red-600/70 rounded text-xs font-medium text-white flex items-center">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="mr-1"
-                                  >
-                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                                    <path d="M12 9v4" />
-                                    <path d="M12 17h.01" />
-                                  </svg>
-                                  Temp
-                                </div>
-                              )}
-
-                              {!isTemp && (user as User).isVerified && (
-                                <div className="ml-auto px-2 py-1 bg-blue-600/70 rounded text-xs font-medium text-white">
-                                  Verified
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="mt-3">
-                              <h4 className="text-xs font-semibold text-purple-200 mb-1">
-                                Badges:
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {user.badges?.map((badge,index) => (
-                                  <span
-                                    key={index}
-                                    className="inline-flex items-center rounded-md border border-purple-400/30 bg-purple-800/30 px-2 py-1 text-xs font-medium text-white"
-                                  >
-                                    {badge?.icon} {badge?.name}
-                                  </span>
-                                ))}
-
-                                {user.badges?.length === 0 && (
-                                  <span className="text-xs text-purple-300">
-                                    No badges earned yet
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {!isTemp && (
-                              <div className="mt-3 grid grid-cols-3 gap-2">
-                                <div className="bg-purple-900/30 p-2 rounded border border-purple-500/20">
-                                  <div className="text-xs text-purple-300">
-                                    Twitter
-                                  </div>
-                                  <div className="font-bold text-white">
-                                    {(user as User).twitterScore}
-                                  </div>
-                                </div>
-                                <div className="bg-purple-900/30 p-2 rounded border border-purple-500/20">
-                                  <div className="text-xs text-purple-300">
-                                    Wallet
-                                  </div>
-                                  <div className="font-bold text-white">
-                                    {(user as User).walletScore}
-                                  </div>
-                                </div>
-                                <div className="bg-purple-900/30 p-2 rounded border border-purple-500/20">
-                                  <div className="text-xs text-purple-300">
-                                    Telegram
-                                  </div>
-                                  <div className="font-bold text-white">
-                                    {(user as User).telegramScore}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {isTemp && (
-                              <div className="mt-3 p-2 bg-red-900/20 rounded border border-red-500/20">
-                                <p className="text-xs text-red-200">
-                                  <span className="font-semibold">
-                                    Limited data:
-                                  </span>{" "}
-                                  To get a complete profile and accurate total
-                                  score, please connect your wallet and Telegram
-                                  account.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div
-            className={`flex-1 ${
-              showUserPanel ? "md:max-w-[calc(100%-24rem)]" : "w-full"
-            }`}
-          >
-            <div className="p-6 bg-[#1a1a2e]/80 rounded-lg border border-purple-500/30 shadow-xl">
-              <div className="w-full">
-                <div className="flex justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 rounded-none bg-purple-600 mr-2"></div>
-                    <span className="text-white text-sm">Full Users</span>
+                    <p className="text-cyber-green">
+                      Enter a Twitter username to plot it on the graph. The X-axis
+                      represents total score, and the Y-axis represents total badges.
+                    </p>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 rounded-none bg-red-400 mr-2"></div>
-                    <span className="text-white text-sm">Temporary Users</span>
-                  </div>
-                </div>
-                <canvas
-                  ref={canvasRef}
-                  className="w-full aspect-[4/3] rounded-lg border border-purple-500/30 bg-black/50"
-                  style={{
-                    boxShadow: "0 0 30px rgba(138, 43, 226, 0.15)",
-                  }}
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={() => setHoverInfo(null)}
-                />
-                <div className="mt-2 text-xs text-purple-300 text-center">
-                  <span className="italic">
-                    Hover over a user to see details
-                  </span>
-                </div>
+                )}
               </div>
-
-              {users.length === 0 && tempUsers.length === 0 && (
-                <div className="mt-4 p-4 bg-purple-900/20 rounded-lg border border-purple-500/20 text-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mx-auto mb-2 text-purple-300"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 16v-4" />
-                    <path d="M12 8h.01" />
-                  </svg>
-                  <p className="text-purple-100">
-                    Enter a Twitter username to plot it on the graph. The X-axis
-                    represents total score, and the Y-axis represents total
-                    badges.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-center mt-6 gap-4">
-          <button
-            onClick={() => setShowUserPanel(!showUserPanel)}
-            className="px-4 py-2 bg-purple-600/80 hover:bg-purple-700 border border-purple-500/50 text-white rounded-full flex items-center shadow-lg shadow-purple-900/20 transition-all"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
+          <div className="flex justify-center mt-6 gap-4">
+            <button
+              onClick={() => setShowUserPanel(!showUserPanel)}
+              className="px-6 py-3 bg-cyber-green text-black font-medium hover:bg-cyber-green/90 transition-all rounded-md shadow-lg"
             >
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-              <path d="M5 3v4" />
-              <path d="M19 17v4" />
-              <path d="M3 5h4" />
-              <path d="M17 19h4" />
-            </svg>
-            User details
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2 inline"
+              >
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                <path d="M5 3v4" />
+                <path d="M19 17v4" />
+                <path d="M3 5h4" />
+                <path d="M17 19h4" />
+              </svg>
+              User details
+            </button>
 
-          <button
-            onClick={clearUsers}
-            className="px-4 py-2 bg-pink-500/70 hover:bg-pink-600 border border-pink-400/50 text-white rounded-full flex items-center shadow-lg shadow-pink-900/20 transition-all"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
+            <button
+              onClick={clearUsers}
+              className="px-6 py-3 bg-cyber-pink text-black font-medium hover:bg-cyber-pink/90 transition-all rounded-md shadow-lg"
             >
-              <path d="M3 6h18" />
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-              <line x1="10" x2="10" y1="11" y2="17" />
-              <line x1="14" x2="14" y1="11" y2="17" />
-            </svg>
-            Clear all
-          </button>
-        </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2 inline"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                <line x1="10" x2="10" y1="11" y2="17" />
+                <line x1="14" x2="14" y1="11" y2="17" />
+              </svg>
+              Clear all
+            </button>
+          </div>
 
-        <div className="text-center text-xs text-gray-400 mt-8">
-          <p>
-            For a proper plot with total score and total badges, please login
-            with all required logins
-          </p>
+          <div className="text-center text-xs text-cyber-green mt-8">
+            <p>
+              For a proper plot with total score and total badges, please login
+              with all required logins
+            </p>
+          </div>
+
+          <div className="flex justify-between items-center mt-3 py-3 border-t border-cyber-green/20">
+    
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
