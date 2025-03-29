@@ -3,6 +3,13 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 
+// Badge component for user achievements
+const Badge = ({ id, name, icon }: { id: string, name: string, icon: string }) => (
+  <span className="inline-flex items-center rounded-md border border-cyan-400/30 bg-black/40 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+    {icon} {name}
+  </span>
+);
+
 // Define types
 interface Badge {
   id: string;
@@ -61,6 +68,12 @@ export default function Home() {
   const userPositionsRef = useRef<
     { x: number; y: number; size: number; user: User | TempUser }[]
   >([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set isMounted to true after component mounts
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   console.log("app page is running");
 
@@ -83,13 +96,17 @@ export default function Home() {
     }
   }, [users]);
 
-  // Draw the graph whenever users or tempUsers change
+  // Draw the graph whenever users or tempUsers change, but only on client
   useEffect(() => {
-    drawGraph();
-  }, [users, tempUsers, hoverInfo]);
+    if (isMounted) {
+      drawGraph();
+    }
+  }, [users, tempUsers, hoverInfo, isMounted]);
 
   // Handle mouse movement for hover effects
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (typeof window === 'undefined') return; // Only run in browser
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -121,6 +138,8 @@ export default function Home() {
 
   // Function to draw the graph
   const drawGraph = () => {
+    if (typeof window === 'undefined') return; // Only run in browser
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
