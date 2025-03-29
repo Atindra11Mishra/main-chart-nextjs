@@ -343,12 +343,17 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) return;
+  
+    if (!username.trim()) {
+      setNotification("Please enter a valid username.");
+      return;
+    }
   
     setIsLoading(true);
+    setNotification("");
   
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chart/user`, {
+      const response = await fetch(`https://back.clusterprotocol.ai/api/chart/user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -356,56 +361,69 @@ export default function Home() {
         body: JSON.stringify({ username }),
       });
   
+      const result = await response.json();
+  
       if (!response.ok) {
-        const error = await response.json();
-        setNotification(`Error: ${error.error || "User not found."}`);
-        setIsLoading(false);
+        setNotification(`❌ Error: ${result.error || "User not found."}`);
         return;
       }
   
-      const data = await response.json();
-  console.log(data)
-      // Determine if it's a full user (has all 3 scores)
-      const isFullUser = data.walletScore !== undefined && data.telegramScore !== undefined;
+      console.log("✅ User data received:", result);
+  
+      const {
+        id,
+        username: returnedUsername,
+        profileImageUrl = "/placeholder.svg",
+        twitterScore = 0,
+        walletScore = 0,
+        telegramScore = 0,
+        totalScore = 0,
+        badges = [],
+        isVerified = false,
+      } = result;
+  
+      const isFullUser = walletScore > 0 && telegramScore > 0;
   
       if (isFullUser) {
         const newUser: User = {
-          id: data.id,
-          username: data.username,
-          profileImageUrl: data.profileImageUrl || "/placeholder.svg",
-          twitterScore: data.twitterScore,
-          walletScore: data.walletScore,
-          telegramScore: data.telegramScore,
-          totalScore: data.totalScore,
-          badges: data.badges,
-          isVerified: data.isVerified ?? false,
+          id,
+          username: returnedUsername,
+          profileImageUrl,
+          twitterScore,
+          walletScore,
+          telegramScore,
+          totalScore,
+          badges,
+          isVerified,
         };
   
         setUsers((prev) => [...prev, newUser]);
-        setNotification(`@${username} has been added with full data.`);
+        setNotification(`✅ @${returnedUsername} added with full score data.`);
       } else {
         const tempUser: TempUser = {
           id: `temp-${Date.now()}`,
-          username: data.username,
-          profileImageUrl: data.profileImageUrl || "/placeholder.svg",
-          twitterScore: data.twitterScore,
-          totalScore: data.totalScore,
-          badges: data.badges.slice(0, 1),
+          username: returnedUsername,
+          profileImageUrl,
+          twitterScore,
+          totalScore,
+          badges: badges.slice(0, 1),
         };
   
         setTempUsers((prev) => [...prev, tempUser]);
-        setNotification(`@${username} added with limited data.`);
+        setNotification(`⚠️ @${returnedUsername} added with partial data.`);
       }
   
-      setUsername("");
+      setUsername(""); // Reset input
       setTimeout(() => setNotification(""), 5000);
+  
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("❌ Error fetching user:", error);
       setNotification("Server error. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
+  
   
 
   const clearUsers = () => {
