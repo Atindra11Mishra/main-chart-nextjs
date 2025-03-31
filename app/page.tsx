@@ -438,7 +438,7 @@ export default function Home() {
     setNotification("");
   
     try {
-      const response = await fetch(`https://back.clusterprotocol.ai/api/chart/user`, {
+      const response = await fetch(`https://back.braindrop.fun/api/chart/user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
