@@ -830,18 +830,7 @@ export default function Home() {
                   </div>
 
                   <div className="flex justify-between items-center mt-3 py-3 border-t border-cyber-green/20 px-4">
-                    <button
-                      onClick={() => setShowUserPanel(false)}
-                      className="px-4 py-2 bg-[#011013] border border-cyber-green/30 rounded text-sm font-medium text-cyber-green hover:bg-cyber-green/5 transition-all shadow-lg"
-                    >
-                      Close Panel
-                    </button>
-                    <button
-                      onClick={clearTempUsers}
-                      className="px-4 py-2 bg-[#011013] border border-cyber-pink/30 rounded text-sm font-medium text-cyber-pink hover:bg-cyber-pink/5 transition-all shadow-lg"
-                    >
-                      Clear Temp
-                    </button>
+
                   </div>
                 </div>
               </div>
