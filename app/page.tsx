@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState, useEffect, useRef } from "react";
+import type React from "react"
+import { useState, useEffect, useRef } from "react"
 
 // Add global scrollbar hide styles
 const globalStyles = `
@@ -28,289 +28,326 @@ const globalStyles = `
   ::-webkit-scrollbar {
     display: none;
   }
-`;
+`
 
 // Badge component for user achievements
-const Badge = ({ id, name, icon }: { id: string, name: string, icon: string }) => (
+const Badge = ({ id, name, icon }: { id: string; name: string; icon: string }) => (
   <span className="inline-flex items-center rounded-md border border-cyber-green/40 bg-[#011013]/80 px-2 py-1 text-xs font-medium text-cyber-green backdrop-blur-sm shadow-[0_0_5px_rgba(9,251,211,0.2)]">
     {icon} {name}
   </span>
-);
+)
 
 // Define types
 interface Badge {
-  id: string;
-  name: string;
-  icon: string;
+  id: string
+  name: string
+  icon: string
 }
 
 interface User {
-  id: string;
-  username: string;
-  profileImageUrl: string;
-  twitterScore: number;
-  walletScore: number;
-  telegramScore: number;
-  totalScore: number;
-  badges: Badge[];
-  isVerified: boolean;
+  id: string
+  username: string
+  profileImageUrl: string
+  twitterScore: number
+  walletScore: number
+  telegramScore: number
+  totalScore: number
+  badges: Badge[]
+  isVerified: boolean
 }
 
 interface TempUser {
-  id: string;
-  username: string;
-  profileImageUrl: string;
-  twitterScore: number;
-  totalScore: number;
-  badges: Badge[];
+  id: string
+  username: string
+  profileImageUrl: string
+  twitterScore: number
+  totalScore: number
+  badges: Badge[]
 }
 
 interface HoverInfo {
-  user: User | TempUser;
-  x: number;
-  y: number;
+  user: User | TempUser
+  x: number
+  y: number
 }
 
 // Score calculation function
-function calculateScore(
-  twitterScore: number,
-  walletScore: number,
-  telegramScore: number
-): number {
-  const weightedTwitter = twitterScore * 0.5;
-  const weightedWallet = walletScore * 0.3;
-  const weightedTelegram = telegramScore * 0.2;
-  return Math.round(weightedTwitter + weightedWallet + weightedTelegram);
+function calculateScore(twitterScore: number, walletScore: number, telegramScore: number): number {
+  const weightedTwitter = twitterScore * 0.5
+  const weightedWallet = walletScore * 0.3
+  const weightedTelegram = telegramScore * 0.2
+  return Math.round(weightedTwitter + weightedWallet + weightedTelegram)
+}
+
+// Function to check if a Twitter user exists (simulated)
+async function checkTwitterUser(username: string): Promise<{
+  exists: boolean
+  profileImageUrl: string
+  estimatedScore: number
+}> {
+  // This is a simulation of a Twitter API call
+  // In production, you would use the actual Twitter API
+
+  // For demo purposes, we'll consider some usernames as "valid"
+  const validUsers = [
+    "elonmusk",
+    "jack",
+    "twitter",
+    "vercel",
+    "nextjs",
+    "reactjs",
+    // Add more known usernames for testing
+  ]
+
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 800))
+
+  // Check if username is in our valid users list or has more than 4 characters
+  // This is just for demo - in production you'd check against the real Twitter API
+  const exists = validUsers.includes(username.toLowerCase()) || (username.length > 4 && Math.random() > 0.3) // 70% chance of "existing" for testing
+
+  if (exists) {
+    // Generate a random score between 30-70 for temporary users
+    const estimatedScore = Math.floor(Math.random() * 40) + 30
+
+    // Return simulated Twitter user data
+    return {
+      exists: true,
+      profileImageUrl: `https://unavatar.io/twitter/${username}`,
+      estimatedScore,
+    }
+  }
+
+  return {
+    exists: false,
+    profileImageUrl: "",
+    estimatedScore: 0,
+  }
 }
 
 export default function Home() {
-  const [username, setUsername] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
-  const [tempUsers, setTempUsers] = useState<TempUser[]>([]);
-  const [showUserPanel, setShowUserPanel] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [notification, setNotification] = useState("");
-  const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const userPositionsRef = useRef<
-    { x: number; y: number; size: number; user: User | TempUser }[]
-  >([]);
-  const [isMounted, setIsMounted] = useState(false);
+  const [username, setUsername] = useState("")
+  const [users, setUsers] = useState<User[]>([])
+  const [tempUsers, setTempUsers] = useState<TempUser[]>([])
+  const [showUserPanel, setShowUserPanel] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [notification, setNotification] = useState("")
+  const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const userPositionsRef = useRef<{ x: number; y: number; size: number; user: User | TempUser }[]>([])
+  const [isMounted, setIsMounted] = useState(false)
 
   // Set isMounted to true after component mounts
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    setIsMounted(true)
+  }, [])
 
-  console.log("app page is running");
+  console.log("app page is running")
 
   // Load users from localStorage on initial render
   useEffect(() => {
-    const savedUsers = localStorage.getItem("users");
+    const savedUsers = localStorage.getItem("users")
     if (savedUsers) {
       try {
-        setUsers(JSON.parse(savedUsers));
+        setUsers(JSON.parse(savedUsers))
       } catch (e) {
-        console.error("Failed to parse saved users", e);
+        console.error("Failed to parse saved users", e)
       }
     }
-  }, []);
+  }, [])
 
   // Save users to localStorage when they change
   useEffect(() => {
     if (users.length > 0) {
-      localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("users", JSON.stringify(users))
     }
-  }, [users]);
+  }, [users])
 
   // Draw the graph whenever users or tempUsers change, but only on client
   useEffect(() => {
     if (isMounted) {
-      drawGraph();
+      drawGraph()
     }
-  }, [users, tempUsers, hoverInfo, isMounted]);
+  }, [users, tempUsers, hoverInfo, isMounted])
 
   // Handle mouse movement for hover effects
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (typeof window === 'undefined') return; // Only run in browser
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (typeof window === "undefined") return // Only run in browser
 
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
 
     // Check if mouse is over any user position
     const hoveredUser = userPositionsRef.current.find((item) => {
-      const { x, y, size } = item;
-      return (
-        mouseX >= x - size / 2 &&
-        mouseX <= x + size / 2 &&
-        mouseY >= y - size / 2 &&
-        mouseY <= y + size / 2
-      );
-    });
+      const { x, y, size } = item
+      return mouseX >= x - size / 2 && mouseX <= x + size / 2 && mouseY >= y - size / 2 && mouseY <= y + size / 2
+    })
 
     if (hoveredUser) {
       setHoverInfo({
         user: hoveredUser.user,
         x: hoveredUser.x,
         y: hoveredUser.y,
-      });
+      })
     } else {
-      setHoverInfo(null);
+      setHoverInfo(null)
     }
-  };
+  }
 
   // Function to draw the graph
   const drawGraph = () => {
-    if (typeof window === 'undefined') return; // Only run in browser
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (typeof window === "undefined") return // Only run in browser
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
 
     // Reset user positions
-    userPositionsRef.current = [];
+    userPositionsRef.current = []
 
     // Set canvas dimensions
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1
+    const rect = canvas.getBoundingClientRect()
 
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    canvas.width = rect.width * dpr
+    canvas.height = rect.height * dpr
 
-    ctx.scale(dpr, dpr);
+    ctx.scale(dpr, dpr)
 
     // Clear canvas
-    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.clearRect(0, 0, rect.width, rect.height)
 
     // Set background - cyber theme with darker bg
-    const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-    gradient.addColorStop(0, "rgba(1, 16, 19, 1)"); // Match the card background
-    gradient.addColorStop(1, "rgba(1, 16, 19, 1)"); // Solid color matching the card
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height)
+    gradient.addColorStop(0, "rgba(1, 16, 19, 1)") // Match the card background
+    gradient.addColorStop(1, "rgba(1, 16, 19, 1)") // Solid color matching the card
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, rect.width, rect.height)
 
     // Add subtle radial gradient overlay for cyber effect
     const radialGradient = ctx.createRadialGradient(
-      rect.width / 2, rect.height / 2, 10,
-      rect.width / 2, rect.height / 2, rect.width * 0.8
-    );
-    radialGradient.addColorStop(0, "rgba(9, 251, 211, 0.03)"); // Very subtle cyber green center glow
-    radialGradient.addColorStop(0.5, "rgba(9, 251, 211, 0.01)");
-    radialGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = radialGradient;
-    ctx.fillRect(0, 0, rect.width, rect.height);
+      rect.width / 2,
+      rect.height / 2,
+      10,
+      rect.width / 2,
+      rect.height / 2,
+      rect.width * 0.8,
+    )
+    radialGradient.addColorStop(0, "rgba(9, 251, 211, 0.03)") // Very subtle cyber green center glow
+    radialGradient.addColorStop(0.5, "rgba(9, 251, 211, 0.01)")
+    radialGradient.addColorStop(1, "rgba(0, 0, 0, 0)")
+    ctx.fillStyle = radialGradient
+    ctx.fillRect(0, 0, rect.width, rect.height)
 
     // Draw grid
-    ctx.strokeStyle = "rgba(9, 251, 211, 0.1)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.1)"
+    ctx.lineWidth = 1
 
     // Vertical grid lines
     for (let i = 0; i <= 10; i++) {
-      const x = (i / 10) * rect.width;
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, rect.height);
-      ctx.stroke();
+      const x = (i / 10) * rect.width
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, rect.height)
+      ctx.stroke()
     }
 
     // Horizontal grid lines
     for (let i = 0; i <= 10; i++) {
-      const y = (i / 10) * rect.height;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(rect.width, y);
-      ctx.stroke();
+      const y = (i / 10) * rect.height
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(rect.width, y)
+      ctx.stroke()
     }
 
     // Draw outer glow border for the graph
-    ctx.strokeStyle = "rgba(9, 251, 211, 0.3)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, rect.width, rect.height);
-    
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.3)"
+    ctx.lineWidth = 2
+    ctx.strokeRect(0, 0, rect.width, rect.height)
+
     // Draw a second inner border for depth
-    ctx.strokeStyle = "rgba(9, 251, 211, 0.1)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(3, 3, rect.width - 6, rect.height - 6);
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.1)"
+    ctx.lineWidth = 1
+    ctx.strokeRect(3, 3, rect.width - 6, rect.height - 6)
 
     // Draw axes
-    ctx.strokeStyle = "rgba(9, 251, 211, 0.5)";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(9, 251, 211, 0.5)"
+    ctx.lineWidth = 2
 
     // X-axis
-    ctx.beginPath();
-    ctx.moveTo(0, rect.height - 30);
-    ctx.lineTo(rect.width, rect.height - 30);
-    ctx.stroke();
+    ctx.beginPath()
+    ctx.moveTo(0, rect.height - 30)
+    ctx.lineTo(rect.width, rect.height - 30)
+    ctx.stroke()
 
     // Y-axis
-    ctx.beginPath();
-    ctx.moveTo(30, 0);
-    ctx.lineTo(30, rect.height);
-    ctx.stroke();
+    ctx.beginPath()
+    ctx.moveTo(30, 0)
+    ctx.lineTo(30, rect.height)
+    ctx.stroke()
 
     // Draw axis labels
-    ctx.fillStyle = "rgba(9, 251, 211, 0.8)"; // Cyber green for labels
-    ctx.font = "12px 'Space Grotesk', sans-serif";
-    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(9, 251, 211, 0.8)" // Cyber green for labels
+    ctx.font = "12px 'Space Grotesk', sans-serif"
+    ctx.textAlign = "center"
 
     // X-axis label
-    ctx.fillText("Total Score", rect.width / 2, rect.height - 10);
+    ctx.fillText("Total Score", rect.width / 2, rect.height - 10)
 
     // Y-axis label
-    ctx.save();
-    ctx.translate(10, rect.height / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText("Total Badges", 0, 0);
-    ctx.restore();
+    ctx.save()
+    ctx.translate(10, rect.height / 2)
+    ctx.rotate(-Math.PI / 2)
+    ctx.fillText("Total Badges", 0, 0)
+    ctx.restore()
 
     // Calculate the maximum score and badge count for scaling
     const maxScore = Math.max(
       100, // Minimum scale
       ...users.map((user) => user.totalScore),
-      ...tempUsers.map((user) => user.totalScore)
-    );
+      ...tempUsers.map((user) => user.totalScore),
+    )
 
     const maxBadges = Math.max(
       5, // Minimum scale
       ...users.map((user) => user.badges?.length || 0),
-      ...tempUsers.map((user) => user.badges?.length || 0)
-    );
-    
-    // Draw scale markers
-    ctx.fillStyle = "rgba(9, 251, 211, 0.6)"; // Cyber green for scale markers
-    ctx.textAlign = "right";
-    ctx.fillText("0", 25, rect.height - 25);
-    ctx.fillText(maxScore.toString(), rect.width - 5, rect.height - 25);
+      ...tempUsers.map((user) => user.badges?.length || 0),
+    )
 
-    ctx.textAlign = "left";
-    ctx.fillText("0", 35, rect.height - 35);
-    ctx.fillText(maxBadges.toString(), 35, 15);
+    // Draw scale markers
+    ctx.fillStyle = "rgba(9, 251, 211, 0.6)" // Cyber green for scale markers
+    ctx.textAlign = "right"
+    ctx.fillText("0", 25, rect.height - 25)
+    ctx.fillText(maxScore.toString(), rect.width - 5, rect.height - 25)
+
+    ctx.textAlign = "left"
+    ctx.fillText("0", 35, rect.height - 35)
+    ctx.fillText(maxBadges.toString(), 35, 15)
 
     // Draw all users
-    const allUsers = [...users, ...tempUsers];
+    const allUsers = [...users, ...tempUsers]
 
     allUsers.forEach((user) => {
       // Determine if it's a temp user
-      const isTemp = !("walletScore" in user);
+      const isTemp = !("walletScore" in user)
 
       // Calculate position
-      const x = 30 + (user.totalScore / maxScore) * (rect.width - 60);
+      const x = 30 + (user.totalScore / maxScore) * (rect.width - 60)
       const y =
         rect.height -
         30 -
-        ((isTemp ? user.badges.length : (user as User).badges?.length||0) /
-          maxBadges) *
-          (rect.height - 60);
+        ((isTemp ? user.badges.length : (user as User).badges?.length || 0) / maxBadges) * (rect.height - 60)
 
       // Define image size (larger square - one grid cell)
-      const cellSize = Math.min(rect.width, rect.height) / 10;
-      const imageSize = cellSize * 0.8; // 80% of a grid cell
+      const cellSize = Math.min(rect.width, rect.height) / 10
+      const imageSize = cellSize * 0.8 // 80% of a grid cell
 
       // Store user position for hover detection
       userPositionsRef.current.push({
@@ -318,224 +355,227 @@ export default function Home() {
         y,
         size: imageSize,
         user,
-      });
+      })
 
       // Draw username
-      ctx.fillStyle = isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)";
-      ctx.font = "10px 'Space Grotesk', sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(`@${user.username}`, x, y + imageSize / 2 + 15);
+      ctx.fillStyle = isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)"
+      ctx.font = "10px 'Space Grotesk', sans-serif"
+      ctx.textAlign = "center"
+      ctx.fillText(`@${user.username}`, x, y + imageSize / 2 + 15)
 
       // Draw profile image background glow
-      const glowGradient = ctx.createRadialGradient(
-        x,
-        y,
-        imageSize / 2,
-        x,
-        y,
-        imageSize
-      );
-      glowGradient.addColorStop(
-        0,
-        isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)"
-      );
-      glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+      const glowGradient = ctx.createRadialGradient(x, y, imageSize / 2, x, y, imageSize)
+      glowGradient.addColorStop(0, isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)")
+      glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)")
 
-      ctx.beginPath();
-      ctx.rect(
-        x - imageSize / 2 - 5,
-        y - imageSize / 2 - 5,
-        imageSize + 10,
-        imageSize + 10
-      );
-      ctx.fillStyle = glowGradient;
-      ctx.fill();
+      ctx.beginPath()
+      ctx.rect(x - imageSize / 2 - 5, y - imageSize / 2 - 5, imageSize + 10, imageSize + 10)
+      ctx.fillStyle = glowGradient
+      ctx.fill()
 
       // Draw profile image border (square)
-      ctx.beginPath();
-      ctx.rect(x - imageSize / 2, y - imageSize / 2, imageSize, imageSize);
-      ctx.strokeStyle = isTemp
-        ? "rgba(254, 83, 187, 0.9)"
-        : "rgba(9, 251, 211, 0.9)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      ctx.beginPath()
+      ctx.rect(x - imageSize / 2, y - imageSize / 2, imageSize, imageSize)
+      ctx.strokeStyle = isTemp ? "rgba(254, 83, 187, 0.9)" : "rgba(9, 251, 211, 0.9)"
+      ctx.lineWidth = 2
+      ctx.stroke()
 
       // Load and draw profile image (square)
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = user.profileImageUrl;
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      img.src = user.profileImageUrl
 
       img.onload = () => {
         // Draw square profile image
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(x - imageSize / 2, y - imageSize / 2, imageSize, imageSize);
-        ctx.clip();
-        ctx.drawImage(
-          img,
-          x - imageSize / 2,
-          y - imageSize / 2,
-          imageSize,
-          imageSize
-        );
-        ctx.restore();
-      };
-    });
+        ctx.save()
+        ctx.beginPath()
+        ctx.rect(x - imageSize / 2, y - imageSize / 2, imageSize, imageSize)
+        ctx.clip()
+        ctx.drawImage(img, x - imageSize / 2, y - imageSize / 2, imageSize, imageSize)
+        ctx.restore()
+      }
+    })
 
     // Draw hover info if available
     if (hoverInfo) {
-      const { user, x, y } = hoverInfo;
-      const isTemp = !("walletScore" in user);
+      const { user, x, y } = hoverInfo
+      const isTemp = !("walletScore" in user)
 
       // Draw info box background with glow
-      const boxWidth = 160;
-      const boxHeight = 80;
-      
+      const boxWidth = 160
+      const boxHeight = 80
+
       // Add glow effect
-      ctx.shadowColor = isTemp ? "rgba(254, 83, 187, 0.6)" : "rgba(9, 251, 211, 0.6)";
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
+      ctx.shadowColor = isTemp ? "rgba(254, 83, 187, 0.6)" : "rgba(9, 251, 211, 0.6)"
+      ctx.shadowBlur = 10
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
 
       // Draw glass panel
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-      ctx.fillRect(x - boxWidth/2, y - 100, boxWidth, boxHeight);
-      
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
+      ctx.fillRect(x - boxWidth / 2, y - 100, boxWidth, boxHeight)
+
       // Reset shadow
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      
+      ctx.shadowColor = "transparent"
+      ctx.shadowBlur = 0
+
       // Draw border
-      ctx.strokeStyle = isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x - boxWidth/2, y - 100, boxWidth, boxHeight);
+      ctx.strokeStyle = isTemp ? "rgba(254, 83, 187, 0.8)" : "rgba(9, 251, 211, 0.8)"
+      ctx.lineWidth = 1
+      ctx.strokeRect(x - boxWidth / 2, y - 100, boxWidth, boxHeight)
 
       // Draw info text
-      ctx.fillStyle = isTemp ? "rgba(254, 83, 187, 1)" : "rgba(9, 251, 211, 1)";
-      ctx.font = "12px 'Space Grotesk', sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(`Score: ${user.totalScore}`, x, y - 75);
-      ctx.fillText(`Badges: ${user.badges?.length}`, x, y - 55);
+      ctx.fillStyle = isTemp ? "rgba(254, 83, 187, 1)" : "rgba(9, 251, 211, 1)"
+      ctx.font = "12px 'Space Grotesk', sans-serif"
+      ctx.textAlign = "center"
+      ctx.fillText(`Score: ${user.totalScore}`, x, y - 75)
+      ctx.fillText(`Badges: ${user.badges?.length}`, x, y - 55)
 
       if (!isTemp) {
-        ctx.fillText(`Twitter: ${(user as User).twitterScore}`, x, y - 35);
+        ctx.fillText(`Twitter: ${(user as User).twitterScore}`, x, y - 35)
       } else {
-        ctx.fillStyle = "rgba(254, 83, 187, 0.8)";
-        ctx.fillText("Connect wallet for full score", x, y - 35);
+        ctx.fillStyle = "rgba(254, 83, 187, 0.8)"
+        ctx.fillText("Connect wallet for full score", x, y - 35)
       }
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-  
+    e.preventDefault()
+
     if (!username.trim()) {
-      setNotification("Please enter a valid username.");
-      return;
+      setNotification("Please enter a valid username.")
+      return
     }
-  
-    setIsLoading(true);
-    setNotification("");
-  
+
+    setIsLoading(true)
+    setNotification("")
+
     try {
+      // First try to get user from our backend
       const response = await fetch(`https://back.braindrop.fun/api/chart/user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username }),
-      });
-  
-      const result = await response.json();
-  
-      if (!response.ok) {
-        setNotification(`❌ Error: ${result.error || "User not found."}`);
-        return;
-      }
-  
-      console.log("✅ User data received:", result);
-  
-      const {
-        id,
-        username: returnedUsername,
-        profileImageUrl = "/placeholder.svg",
-        twitterScore = 0,
-        walletScore = 0,
-        telegramScore = 0,
-        totalScore = 0,
-        badges = [],
-        isVerified = false,
-      } = result;
-  
-      const isFullUser = walletScore > 0 && telegramScore > 0;
-  
-      if (isFullUser) {
-        const newUser: User = {
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log("✅ User data received from backend:", result)
+
+        const {
           id,
           username: returnedUsername,
-          profileImageUrl,
-          twitterScore,
-          walletScore,
-          telegramScore,
-          totalScore,
-          badges,
-          isVerified,
-        };
-  
-        setUsers((prev) => [...prev, newUser]);
-        setNotification(`✅ @${returnedUsername} added with full score data.`);
+          profileImageUrl = "/placeholder.svg",
+          twitterScore = 0,
+          walletScore = 0,
+          telegramScore = 0,
+          totalScore = 0,
+          badges = [],
+          isVerified = false,
+        } = result
+
+        const isFullUser = walletScore > 0 && telegramScore > 0
+
+        if (isFullUser) {
+          const newUser: User = {
+            id,
+            username: returnedUsername,
+            profileImageUrl,
+            twitterScore,
+            walletScore,
+            telegramScore,
+            totalScore,
+            badges,
+            isVerified,
+          }
+
+          setUsers((prev) => [...prev, newUser])
+          setNotification(`✅ @${returnedUsername} added with full score data.`)
+        } else {
+          const tempUser: TempUser = {
+            id: `temp-${Date.now()}`,
+            username: returnedUsername,
+            profileImageUrl,
+            twitterScore,
+            totalScore,
+            badges: badges.slice(0, 1),
+          }
+
+          setTempUsers((prev) => [...prev, tempUser])
+          setNotification(`⚠️ @${returnedUsername} added with partial data.`)
+        }
       } else {
-        const tempUser: TempUser = {
-          id: `temp-${Date.now()}`,
-          username: returnedUsername,
-          profileImageUrl,
-          twitterScore,
-          totalScore,
-          badges: badges.slice(0, 1),
-        };
-  
-        setTempUsers((prev) => [...prev, tempUser]);
-        setNotification(`⚠️ @${returnedUsername} added with partial data.`);
+        // User not found in our backend, try to fetch from Twitter API
+        console.log("User not found in backend, trying Twitter API...")
+
+        // For demo purposes, we'll simulate a Twitter API call
+        // In production, you would make an actual API call to Twitter
+        try {
+          // Simulate Twitter API verification
+          const twitterResponse = await checkTwitterUser(username)
+
+          if (twitterResponse.exists) {
+            // Create a temporary user with Twitter data
+            const tempUser: TempUser = {
+              id: `temp-twitter-${Date.now()}`,
+              username: username,
+              profileImageUrl: twitterResponse.profileImageUrl,
+              twitterScore: twitterResponse.estimatedScore,
+              totalScore: twitterResponse.estimatedScore,
+              badges: [{ id: "twitter-basic", name: "Twitter User", icon: "🐦" }],
+            }
+
+            setTempUsers((prev) => [...prev, tempUser])
+            setNotification(
+              `⚠️ @${username} added as temporary user. Connect your wallet and Telegram to get a full profile!`,
+            )
+          } else {
+            setNotification(`❌ Error: Twitter user @${username} not found.`)
+          }
+        } catch (twitterError) {
+          console.error("Error checking Twitter:", twitterError)
+          setNotification(`❌ Error: User not found.`)
+        }
       }
-  
-      setUsername(""); // Reset input
-      setTimeout(() => setNotification(""), 5000);
-  
     } catch (error) {
-      console.error("❌ Error fetching user:", error);
-      setNotification("Server error. Please try again later.");
+      console.error("❌ Error fetching user:", error)
+      setNotification("Server error. Please try again later.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
+      setUsername("") // Reset input
     }
-  };
-  
-  
+  }
 
   const clearUsers = () => {
-    setUsers([]);
-    setTempUsers([]);
-    localStorage.removeItem("users");
-    setNotification("All users have been cleared.");
+    setUsers([])
+    setTempUsers([])
+    localStorage.removeItem("users")
+    setNotification("All users have been cleared.")
 
     // Clear notification after 3 seconds
     setTimeout(() => {
-      setNotification("");
-    }, 3000);
-  };
+      setNotification("")
+    }, 3000)
+  }
 
   const clearTempUsers = () => {
-    setTempUsers([]);
-    setNotification("All temporary users have been cleared.");
+    setTempUsers([])
+    setNotification("All temporary users have been cleared.")
 
     // Clear notification after 3 seconds
     setTimeout(() => {
-      setNotification("");
-    }, 3000);
-  };
+      setNotification("")
+    }, 3000)
+  }
 
   return (
     <>
-      <style jsx global>{globalStyles}</style>
+      <style jsx global>
+        {globalStyles}
+      </style>
       <main className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-[#011013] bg-[radial-gradient(ellipse_at_center,rgba(9,251,211,0.05),transparent_70%)] overflow-x-hidden scrollbar-hide">
         <div className="w-full max-w-4xl">
           <div className="flex flex-col items-center mb-8">
@@ -578,7 +618,7 @@ export default function Home() {
                 disabled={isLoading}
                 className="p-2 rounded-md bg-[#011013] border border-cyber-green/30 text-cyber-green hover:bg-cyber-green/10 hover:border-cyber-green/50 transition-all"
                 style={{
-                  boxShadow: isLoading ? "none" : "0 0 8px rgba(9, 251, 211, 0.2)"
+                  boxShadow: isLoading ? "none" : "0 0 8px rgba(9, 251, 211, 0.2)",
                 }}
               >
                 <svg
@@ -600,7 +640,7 @@ export default function Home() {
                 onClick={() => setShowUserPanel(!showUserPanel)}
                 className="p-2 rounded-md bg-cyber-green text-black hover:bg-cyber-green/90 transition-all"
                 style={{
-                  boxShadow: "0 0 10px rgba(9, 251, 211, 0.3)"
+                  boxShadow: "0 0 10px rgba(9, 251, 211, 0.3)",
                 }}
               >
                 <svg
@@ -634,11 +674,9 @@ export default function Home() {
           <div className="flex flex-col md:flex-row gap-4">
             {showUserPanel && (
               <div className="w-full md:w-96">
-                <div
-                  className="bg-[#011013] rounded-lg overflow-hidden h-full border-2 border-cyber-green/50 shadow-[0_0_20px_rgba(9,251,211,0.3)] backdrop-blur-lg relative scrollbar-hide"
-                >
+                <div className="bg-[#011013] rounded-lg overflow-hidden h-full border-2 border-cyber-green/50 shadow-[0_0_20px_rgba(9,251,211,0.3)] backdrop-blur-lg relative scrollbar-hide">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(9,251,211,0.05),transparent_70%)] z-0"></div>
-                
+
                   <div className="bg-cyber-green/5 p-3 border-b border-cyber-green/20 relative z-10">
                     <h2 className="text-lg font-bold text-white flex items-center">
                       <svg
@@ -686,15 +724,12 @@ export default function Home() {
                             <path d="M17 19h4" />
                           </svg>
                         </div>
-                        <p>
-                          No users analyzed yet. Enter a Twitter username to see
-                          their score and badges.
-                        </p>
+                        <p>No users analyzed yet. Enter a Twitter username to see their score and badges.</p>
                       </div>
                     ) : (
                       <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
                         {[...users, ...tempUsers].map((user) => {
-                          const isTemp = !("walletScore" in user);
+                          const isTemp = !("walletScore" in user)
 
                           return (
                             <div
@@ -706,27 +741,17 @@ export default function Home() {
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="w-10 h-10 rounded-none overflow-hidden border-2 border-cyber-green/50">
                                   <img
-                                    src={
-                                      user.profileImageUrl || "/placeholder.svg"
-                                    }
+                                    src={user.profileImageUrl || "/placeholder.svg"}
                                     alt={user.username}
                                     className="w-full h-full object-cover"
                                   />
                                 </div>
                                 <div>
-                                  <h3 className="font-bold text-white">
-                                    @{user.username}
-                                  </h3>
+                                  <h3 className="font-bold text-white">@{user.username}</h3>
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-cyber-green">
-                                      Score: {user.totalScore}
-                                    </span>
-                                    <span className="text-xs text-cyber-green">
-                                      •
-                                    </span>
-                                    <span className="text-xs text-cyber-green">
-                                      Badges: {user.badges?.length}
-                                    </span>
+                                    <span className="text-xs text-cyber-green">Score: {user.totalScore}</span>
+                                    <span className="text-xs text-cyber-green">•</span>
+                                    <span className="text-xs text-cyber-green">Badges: {user.badges?.length}</span>
                                   </div>
                                 </div>
 
@@ -760,11 +785,9 @@ export default function Home() {
                               </div>
 
                               <div className="mt-3">
-                                <h4 className="text-xs font-semibold text-cyber-green mb-1">
-                                  Badges:
-                                </h4>
+                                <h4 className="text-xs font-semibold text-cyber-green mb-1">Badges:</h4>
                                 <div className="flex flex-wrap gap-2">
-                                  {user.badges?.map((badge,index) => (
+                                  {user.badges?.map((badge, index) => (
                                     <span
                                       key={index}
                                       className="inline-flex items-center rounded-md border border-cyber-green/40 bg-[#011013] px-2 py-1 text-xs font-medium text-cyber-green shadow-[0_0_5px_rgba(9,251,211,0.2)]"
@@ -774,9 +797,7 @@ export default function Home() {
                                   ))}
 
                                   {user.badges?.length === 0 && (
-                                    <span className="text-xs text-cyan-300">
-                                      No badges earned yet
-                                    </span>
+                                    <span className="text-xs text-cyan-300">No badges earned yet</span>
                                   )}
                                 </div>
                               </div>
@@ -784,46 +805,92 @@ export default function Home() {
                               {!isTemp && (
                                 <div className="mt-3 grid grid-cols-3 gap-2">
                                   <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
-                                    <div className="text-xs text-cyber-green">
-                                      Twitter
-                                    </div>
-                                    <div className="font-bold text-white">
-                                      {(user as User).twitterScore}
-                                    </div>
+                                    <div className="text-xs text-cyber-green">Twitter</div>
+                                    <div className="font-bold text-white">{(user as User).twitterScore}</div>
                                   </div>
                                   <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
-                                    <div className="text-xs text-cyber-green">
-                                      Wallet
-                                    </div>
-                                    <div className="font-bold text-white">
-                                      {(user as User).walletScore}
-                                    </div>
+                                    <div className="text-xs text-cyber-green">Wallet</div>
+                                    <div className="font-bold text-white">{(user as User).walletScore}</div>
                                   </div>
                                   <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
-                                    <div className="text-xs text-cyber-green">
-                                      Telegram
-                                    </div>
-                                    <div className="font-bold text-white">
-                                      {(user as User).telegramScore}
-                                    </div>
+                                    <div className="text-xs text-cyber-green">Telegram</div>
+                                    <div className="font-bold text-white">{(user as User).telegramScore}</div>
                                   </div>
                                 </div>
                               )}
 
                               {isTemp && (
-                                <div className="mt-3 p-2 bg-[#011013] rounded border border-cyber-pink/30 shadow-[0_0_5px_rgba(254,83,187,0.1)]">
-                                  <p className="text-xs text-cyber-pink">
-                                    <span className="font-semibold">
-                                      Limited data:
-                                    </span>{" "}
-                                    To get a complete profile and accurate total
-                                    score, please connect your wallet and Telegram
-                                    account.
-                                  </p>
+                                <div className="mt-3 space-y-2">
+                                  <div className="p-2 bg-[#011013] rounded border border-cyber-pink/30 shadow-[0_0_5px_rgba(254,83,187,0.1)]">
+                                    <p className="text-xs text-cyber-pink">
+                                      <span className="font-semibold">Temporary profile:</span> This is based on
+                                      estimated Twitter data only.
+                                    </p>
+                                  </div>
+
+                                  <div className="p-3 bg-[#011013] rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
+                                    <h4 className="text-xs font-semibold text-cyber-green mb-2">
+                                      Complete your profile:
+                                    </h4>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 flex flex-col items-center justify-center">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          className="text-cyber-green mb-1"
+                                        >
+                                          <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z" />
+                                        </svg>
+                                        <div className="text-xs text-cyber-green">Connect Wallet</div>
+                                      </div>
+                                      <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 flex flex-col items-center justify-center">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          className="text-cyber-green mb-1"
+                                        >
+                                          <path d="m22 2-7 20-4-9-9-4Z" />
+                                          <path d="M22 2 11 13" />
+                                        </svg>
+                                        <div className="text-xs text-cyber-green">Connect Telegram</div>
+                                      </div>
+                                      <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 flex flex-col items-center justify-center">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          className="text-cyber-green mb-1"
+                                        >
+                                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                                        </svg>
+                                        <div className="text-xs text-cyber-green">Unlock Badges</div>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                               )}
                             </div>
-                          );
+                          )
                         })}
                       </div>
                     )}
@@ -847,15 +914,11 @@ export default function Home() {
               </div>
             )}
 
-            <div
-              className={`flex-1 ${
-                showUserPanel ? "md:max-w-[calc(100%-24rem)]" : "w-full"
-              } scrollbar-hide`}
-            >
+            <div className={`flex-1 ${showUserPanel ? "md:max-w-[calc(100%-24rem)]" : "w-full"} scrollbar-hide`}>
               <div className="p-6 bg-[#011013] rounded-lg border-2 border-cyber-green/50 shadow-[0_0_20px_rgba(9,251,211,0.3)] backdrop-blur-lg relative overflow-hidden scrollbar-hide">
                 {/* Add the subtle radial gradient overlay */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(9,251,211,0.08),transparent_70%)] z-0"></div>
-                
+
                 <div className="w-full relative z-10">
                   <div className="flex justify-between mb-4">
                     <div className="flex items-center">
@@ -877,9 +940,7 @@ export default function Home() {
                     onMouseLeave={() => setHoverInfo(null)}
                   />
                   <div className="mt-2 text-xs text-cyber-green text-center">
-                    <span className="italic">
-                      Hover over a user to see details
-                    </span>
+                    <span className="italic">Hover over a user to see details</span>
                   </div>
                 </div>
 
@@ -902,8 +963,8 @@ export default function Home() {
                       <path d="M12 8h.01" />
                     </svg>
                     <p className="text-cyber-green">
-                      Enter a Twitter username to plot it on the graph. The X-axis
-                      represents total score, and the Y-axis represents total badges.
+                      Enter a Twitter username to plot it on the graph. The X-axis represents total score, and the
+                      Y-axis represents total badges.
                     </p>
                   </div>
                 )}
@@ -964,17 +1025,13 @@ export default function Home() {
           </div>
 
           <div className="text-center text-xs text-cyber-green mt-8">
-            <p>
-              For a proper plot with total score and total badges, please login
-              with all required logins
-            </p>
+            <p>For a proper plot with total score and total badges, please login with all required logins</p>
           </div>
 
-          <div className="flex justify-between items-center mt-3 py-3 border-t border-cyber-green/20">
-    
-          </div>
+          <div className="flex justify-between items-center mt-3 py-3 border-t border-cyber-green/20"></div>
         </div>
       </main>
     </>
-  );
+  )
 }
+
