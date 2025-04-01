@@ -539,6 +539,12 @@ export default function Home() {
       <main className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-[#011013] bg-[radial-gradient(ellipse_at_center,rgba(9,251,211,0.05),transparent_70%)] overflow-x-hidden scrollbar-hide">
         <div className="w-full max-w-4xl">
           <div className="flex flex-col items-center mb-8">
+            {/* Logos above the heading */}
+            <div className="flex items-center justify-center mb-9">
+              <img src="/02_WHITE (1) (1).png" alt="Logo 1" className="h-10" />
+              <img src="/02_WHITE (2).png" alt="Logo 2" className="h-8" />
+            </div>
+            
             <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2 mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
