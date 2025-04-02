@@ -427,16 +427,16 @@ export default function Home() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-  
+    e.preventDefault()
+
     if (!username.trim()) {
       setNotification("Please enter a valid username.");
       return;
     }
-  
-    setIsLoading(true);
-    setNotification("");
-  
+
+    setIsLoading(true)
+    setNotification("")
+
     try {
       const response = await fetch(`https://back.braindrop.fun/api/chart/user`, {
         method: "POST",
@@ -444,63 +444,87 @@ export default function Home() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username }),
-      });
-  
-      const result = await response.json();
-  
-      if (!response.ok) {
-        setNotification(`❌ Error: ${result.error || "User not found."}`);
-        return;
-      }
-  
-      console.log("✅ User data received:", result);
-  
-      const {
-        id,
-        username: returnedUsername,
-        profileImageUrl = "/placeholder.svg",
-        twitterScore = 0,
-        walletScore = 0,
-        telegramScore = 0,
-        totalScore = 0,
-        badges = [],
-        isVerified = false,
-      } = result;
-  
-      const isFullUser = walletScore > 0 && telegramScore > 0;
-  
-      if (isFullUser) {
-        const newUser: User = {
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log("✅ User data received from backend:", result)
+
+        const {
           id,
           username: returnedUsername,
-          profileImageUrl,
-          twitterScore,
-          walletScore,
-          telegramScore,
-          totalScore,
-          badges,
-          isVerified,
-        };
-  
-        setUsers((prev) => [...prev, newUser]);
-        setNotification(`✅ @${returnedUsername} added with full score data.`);
+          profileImageUrl = "/placeholder.svg",
+          twitterScore = 0,
+          walletScore = 0,
+          telegramScore = 0,
+          totalScore = 0,
+          badges = [],
+          isVerified = false,
+        } = result
+
+        const isFullUser = walletScore > 0 && telegramScore > 0
+
+        if (isFullUser) {
+          const newUser: User = {
+            id,
+            username: returnedUsername,
+            profileImageUrl,
+            twitterScore,
+            walletScore,
+            telegramScore,
+            totalScore,
+            badges,
+            isVerified,
+          }
+
+          setUsers((prev) => [...prev, newUser])
+          setNotification(`✅ @${returnedUsername} added with full score data.`)
+        } else {
+          const tempUser: TempUser = {
+            id: `temp-${Date.now()}`,
+            username: returnedUsername,
+            profileImageUrl,
+            twitterScore,
+            totalScore,
+            badges: badges.slice(0, 1),
+          }
+
+          setTempUsers((prev) => [...prev, tempUser])
+          setNotification(`⚠️ @${returnedUsername} added with partial data.`)
+        }
       } else {
-        const tempUser: TempUser = {
-          id: `temp-${Date.now()}`,
-          username: returnedUsername,
-          profileImageUrl,
-          twitterScore,
-          totalScore,
-          badges: badges.slice(0, 1),
-        };
-  
-        setTempUsers((prev) => [...prev, tempUser]);
-        setNotification(`⚠️ @${returnedUsername} added with partial data.`);
+        // User not found in our backend, try to fetch from Twitter API
+        console.log("User not found in backend, trying Twitter API...")
+
+        // For demo purposes, we'll simulate a Twitter API call
+        // In production, you would make an actual API call to Twitter
+        try {
+          // Simulate Twitter API verification
+          const twitterResponse = await checkTwitterUser(username)
+
+          if (twitterResponse.exists) {
+            // Create a temporary user with Twitter data
+            const tempUser: TempUser = {
+              id: `temp-twitter-${Date.now()}`,
+              username: username,
+              profileImageUrl: twitterResponse.profileImageUrl,
+              twitterScore: twitterResponse.estimatedScore,
+              totalScore: twitterResponse.estimatedScore,
+              badges: [{ id: "twitter-basic", name: "Twitter User", icon: "🐦" }],
+            }
+
+            setTempUsers((prev) => [...prev, tempUser])
+            setNotification(
+              `⚠️ @${username} added as temporary user. Connect your wallet and Telegram to get a full profile!`,
+            )
+          } else {
+            setNotification(`❌ Error: Twitter user @${username} not found.`)
+          }
+        } catch (twitterError) {
+          console.error("Error checking Twitter:", twitterError)
+          setNotification(`❌ Error: User not found.`)
+        }
       }
-  
-      setUsername(""); // Reset input
-      setTimeout(() => setNotification(""), 5000);
-  
     } catch (error) {
       console.error("❌ Error fetching user:", error);
       setNotification("Server error. Please try again later.");
