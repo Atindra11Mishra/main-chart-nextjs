@@ -467,7 +467,7 @@ export default function Home() {
         const {
           id,
           username: returnedUsername,
-          profileImageUrl = "/placeholder.svg",
+          profileImageUrl = `https://unavatar.io/twitter/${username}`,
           twitterScore = 0,
           walletScore = 0,
           telegramScore = 0,
