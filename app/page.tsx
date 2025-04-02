@@ -316,7 +316,7 @@ export default function Home() {
     )
 
     const maxBadges = Math.max(
-      5, // Minimum scale
+      30, // Minimum scale
       ...users.map((user) => user.badges?.length || 0),
       ...tempUsers.map((user) => user.badges?.length || 0),
     )
