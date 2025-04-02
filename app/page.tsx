@@ -439,18 +439,17 @@ export default function Home() {
       }
     }
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+  
     if (!username.trim()) {
       setNotification("Please enter a valid username.")
       return
     }
-
+  
     setIsLoading(true)
     setNotification("")
-
+  
     try {
       // First try to get user from our backend
       const response = await fetch(`https://back.braindrop.fun/api/chart/user`, {
@@ -460,11 +459,11 @@ export default function Home() {
         },
         body: JSON.stringify({ username }),
       })
-
+  
       if (response.ok) {
         const result = await response.json()
         console.log("✅ User data received from backend:", result)
-
+  
         const {
           id,
           username: returnedUsername,
@@ -476,68 +475,73 @@ export default function Home() {
           badges = [],
           isVerified = false,
         } = result
-
+  
+        // Create a user with all data received
+        const newUser: User = {
+          id: id || `user-${Date.now()}`,
+          username: returnedUsername,
+          profileImageUrl,
+          twitterScore,
+          walletScore,
+          telegramScore,
+          totalScore,
+          badges,
+          isVerified,
+        }
+  
+        setUsers((prev) => [...prev, newUser])
+        
         const isFullUser = walletScore > 0 && telegramScore > 0
-
         if (isFullUser) {
-          const newUser: User = {
-            id,
-            username: returnedUsername,
-            profileImageUrl,
-            twitterScore,
-            walletScore,
-            telegramScore,
-            totalScore,
-            badges,
-            isVerified,
-          }
-
-          setUsers((prev) => [...prev, newUser])
           setNotification(`✅ @${returnedUsername} added with full score data.`)
         } else {
-          const tempUser: TempUser = {
-            id: `temp-${Date.now()}`,
-            username: returnedUsername,
-            profileImageUrl,
-            twitterScore,
-            totalScore,
-            badges: badges.slice(0, 1),
-          }
-
-          setTempUsers((prev) => [...prev, tempUser])
-          setNotification(`⚠️ @${returnedUsername} added with partial data.`)
+          setNotification(`⚠️ @${returnedUsername} added with partial data. Connect additional services to increase your score!`)
         }
       } else {
-        // User not found in our backend, try to fetch from Twitter API
-        console.log("User not found in backend, trying Twitter API...")
-
-        // For demo purposes, we'll simulate a Twitter API call
-        // In production, you would make an actual API call to Twitter
+        // User not found in our backend, try to fetch from Twitter API using new endpoint
+        console.log("User not found in backend, trying Twitter details API...")
+  
         try {
-          // Simulate Twitter API verification
-          const twitterResponse = await checkTwitterUser(username)
-
-          if (twitterResponse.exists) {
-            // Create a temporary user with Twitter data
-            const tempUser: TempUser = {
-              id: `temp-twitter-${Date.now()}`,
-              username: username,
-              profileImageUrl: twitterResponse.profileImageUrl,
-              twitterScore: twitterResponse.estimatedScore,
-              totalScore: twitterResponse.estimatedScore,
-              badges: [{ id: "twitter-basic", name: "Twitter User", icon: "🐦" }],
+          // Call the Twitter details API
+          const twitterResponse = await fetch(`https://back.braindrop.fun/api/twitter/details`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username }),
+          })
+  
+          if (twitterResponse.ok) {
+            const twitterData = await twitterResponse.json()
+            console.log("✅ Twitter data received:", twitterData)
+  
+            if (twitterData.success) {
+              // Create a user with Twitter data
+              const newUser: User = {
+                id: `twitter-${Date.now()}`,
+                username: twitterData.username || username,
+                profileImageUrl: twitterData.profileImageUrl || `https://unavatar.io/twitter/${username}`,
+                twitterScore: twitterData.twitterScore || 20,
+                walletScore: 0, // No wallet score yet
+                telegramScore: 0, // No telegram score yet
+                totalScore: twitterData.totalScore || twitterData.twitterScore || 20,
+                badges: twitterData.badges || [{ id: "twitter-basic", name: "Twitter User", icon: "🐦" }],
+                isVerified: false,
+              }
+  
+              setUsers((prev) => [...prev, newUser])
+              setNotification(
+                `⚠️ @${username} added with Twitter score. Connect your wallet and Telegram to get a full profile!`
+              )
+            } else {
+              setNotification(`❌ Error: ${twitterData.message || "Could not retrieve Twitter data"}`)
             }
-
-            setTempUsers((prev) => [...prev, tempUser])
-            setNotification(
-              `⚠️ @${username} added as temporary user. Connect your wallet and Telegram to get a full profile!`,
-            )
           } else {
-            setNotification(`❌ Error: Twitter user @${username} not found.`)
+            setNotification(`❌ Error: Twitter user data retrieval failed.`)
           }
         } catch (twitterError) {
-          console.error("Error checking Twitter:", twitterError)
-          setNotification(`❌ Error: User not found.`)
+          console.error("Error fetching Twitter details:", twitterError)
+          setNotification(`❌ Error: Twitter API error. User data retrieval failed.`)
         }
       }
     } catch (error) {
