@@ -476,7 +476,7 @@ export default function Home() {
           isVerified = false,
         } = result
   
-        // Create a user with all data received
+        // Create a user with all data received (Loyal user)
         const newUser: User = {
           id: id || `user-${Date.now()}`,
           username: returnedUsername,
@@ -495,7 +495,7 @@ export default function Home() {
         if (isFullUser) {
           setNotification(`✅ @${returnedUsername} added with full score data.`)
         } else {
-          setNotification(`⚠️ @${returnedUsername} added with partial data. Connect additional services to increase your score!`)
+          setNotification(`✅ @${returnedUsername} Thank you for being one the Loyal one's. This is your overall progress!`)
         }
       } else {
         // User not found in our backend, try to fetch from Twitter API using new endpoint
@@ -516,22 +516,20 @@ export default function Home() {
             console.log("✅ Twitter data received:", twitterData)
   
             if (twitterData.success) {
-              // Create a user with Twitter data
-              const newUser: User = {
+              // Create a temporary user (Guest) with Twitter data
+              // Note: Adding this as a tempUser instead of a regular user
+              const tempUsers: TempUser = {
                 id: `twitter-${Date.now()}`,
                 username: twitterData.username || username,
                 profileImageUrl: twitterData.profileImageUrl || `https://unavatar.io/twitter/${username}`,
                 twitterScore: twitterData.twitterScore || 20,
-                walletScore: 0, // No wallet score yet
-                telegramScore: 0, // No telegram score yet
                 totalScore: twitterData.totalScore || twitterData.twitterScore || 20,
                 badges: twitterData.badges || [{ id: "twitter-basic", name: "Twitter User", icon: "🐦" }],
-                isVerified: false,
               }
   
-              setUsers((prev) => [...prev, newUser])
+              setTempUsers((prev) => [...prev, tempUsers])
               setNotification(
-                `⚠️ @${username} added with Twitter score. Connect your wallet and Telegram to get a full profile!`
+                `⚠️ @${username} added as a Guest. Connect your wallet and Telegram to get a full profile!`
               )
             } else {
               setNotification(`❌ Error: ${twitterData.message || "Could not retrieve Twitter data"}`)
@@ -577,13 +575,68 @@ export default function Home() {
 
   return (
     <>
+    
+    <header className="w-full bg-[#011013] border-b border-cyber-green/20 backdrop-blur-md py-3 px-4 md:px-8 fixed top-0 left-0 z-50 shadow-[0_4px_20px_rgba(9,251,211,0.15)]">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="text-cyber-green flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="drop-shadow-[0_0_8px_rgba(9,251,211,0.8)]"
+            >
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+              <path d="M5 3v4" />
+              <path d="M19 17v4" />
+              <path d="M3 5h4" />
+              <path d="M17 19h4" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyber-green to-cyber-blue drop-shadow-[0_0_5px_rgba(9,251,211,0.5)]">
+              BRAINDROP
+            </h1>
+            <p className="text-xs text-gray-400">User Analytics Platform</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-4 mr-4">
+            <a href="https://braindrop.fun/scorecard" className="text-cyber-green text-sm hover:text-cyber-green/80 transition-all">Dashboard</a>
+  
+          </div>
+          
+          <div className="flex items-center">
+          
+            
+            <div className="flex items-center ml-4">
+              <div className="flex -space-x-2">
+                <div className="w-7 h-7 rounded-full border-2 border-cyber-green/50 bg-cyber-green/10 text-cyber-green flex items-center justify-center text-xs font-bold">L</div>
+                <div className="w-7 h-7 rounded-full border-2 border-cyber-pink/50 bg-cyber-pink/10 text-cyber-pink flex items-center justify-center text-xs font-bold">G</div>
+              </div>
+              <span className="ml-2 text-xs text-gray-400">
+                <span className="text-cyber-green font-medium">{users?.length || 0}</span> / <span className="text-cyber-pink font-medium">{tempUsers?.length || 0}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  
       <style jsx global>
         {globalStyles}
       </style>
       <main className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-[#011013] bg-[radial-gradient(ellipse_at_center,rgba(9,251,211,0.05),transparent_70%)] overflow-x-hidden scrollbar-hide">
         <div className="w-full max-w-4xl">
           <div className="flex flex-col items-center mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2 mb-6">
+            <h1 className="mt-24 text-2xl md:text-3xl font-bold text-white flex items-center gap-2 mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -602,7 +655,7 @@ export default function Home() {
                 <path d="M3 5h4" />
                 <path d="M17 19h4" />
               </svg>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyber-green to-cyber-blue drop-shadow-[0_0_8px_rgba(9,251,211,0.5)]">
+              <span className=" bg-clip-text text-transparent bg-gradient-to-r from-cyber-green to-cyber-blue drop-shadow-[0_0_8px_rgba(9,251,211,0.5)]">
                 User Score & Badge Analysis
               </span>
             </h1>
@@ -832,65 +885,7 @@ export default function Home() {
                                     </p>
                                   </div>
 
-                                  <div className="p-3 bg-[#011013] rounded border border-cyber-green/30 shadow-[0_0_5px_rgba(9,251,211,0.1)]">
-                                    <h4 className="text-xs font-semibold text-cyber-green mb-2">
-                                      Complete your profile:
-                                    </h4>
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 flex flex-col items-center justify-center">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="16"
-                                          height="16"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          className="text-cyber-green mb-1"
-                                        >
-                                          <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z" />
-                                        </svg>
-                                        <div className="text-xs text-cyber-green">Connect Wallet</div>
-                                      </div>
-                                      <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 flex flex-col items-center justify-center">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="16"
-                                          height="16"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          className="text-cyber-green mb-1"
-                                        >
-                                          <path d="m22 2-7 20-4-9-9-4Z" />
-                                          <path d="M22 2 11 13" />
-                                        </svg>
-                                        <div className="text-xs text-cyber-green">Connect Telegram</div>
-                                      </div>
-                                      <div className="bg-[#011013] p-2 rounded border border-cyber-green/30 flex flex-col items-center justify-center">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="16"
-                                          height="16"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          className="text-cyber-green mb-1"
-                                        >
-                                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-                                        </svg>
-                                        <div className="text-xs text-cyber-green">Unlock Badges</div>
-                                      </div>
-                                    </div>
-                                  </div>
+                                  
                                 </div>
                               )}
                             </div>
@@ -900,7 +895,7 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center mt-3 py-3 border-t border-cyber-green/20 px-4">
+                  {/* <div className="flex justify-between items-center mt-3 py-3 border-t border-cyber-green/20 px-4">
                     <button
                       onClick={() => setShowUserPanel(false)}
                       className="px-4 py-2 bg-[#011013] border border-cyber-green/30 rounded text-sm font-medium text-cyber-green hover:bg-cyber-green/5 transition-all shadow-lg"
@@ -913,7 +908,7 @@ export default function Home() {
                     >
                       Clear Temp
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}
